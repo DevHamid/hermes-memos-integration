@@ -1,45 +1,99 @@
-# 🚀 Project Hail Mary - FOSS Markdown Productivity Dashboard
+# 🧠 Hermes ↔ useMemos Integration
 
-![Logo](https://raw.githubusercontent.com/usememos/memos/main/assets/logo.png)
+`usememos-skill` — connect Hermes Agent to your self-hosted useMemos instance so you can list, search, and create memos directly from the Hermes terminal or TUI.
+
+---
 
 ## 📌 Overview
-A privacy-first, FOSS Markdown dashboard inspired by UseMemos. Build a lightweight personal productivity tool with:
 
-- 💻 **Backend**: Go (Golang) for lightning-fast performance
-- 🖥️ **Frontend**: Single-page HTML/Tailwind/JS (or embedded React/Preact)
-- 📦 **Storage**: Plain text Markdown files (no database needed)
+This skill bridges Hermes Agent with [useMemos](https://usememos.com) (self-hosted note service), letting you manage notes without leaving your chat.
 
-## 🛠️ Setup
-1. `git clone https://github.com/DevHamid/hermes-memos-integration.git`
-2. `cd hermes-memos-integration && cd /opt/data`
-3. Set up environment variables:
+| Capability | Command |
+|---|---|
+| 📋 List recent memos | `hermes chat -q "list recent memos"` |
+| 🔍 Search memos | `hermes chat -q "search memos for <keyword>"` |
+| ✍️ Create memo | `hermes chat -q "create memo: <content>"` |
+
+---
+
+## 🛠️ Prerequisites
+
+- Hermes installed and running
+- Self-hosted useMemos instance reachable
+- `MEMOS_API_URL` — e.g. `http://<memos-host>:5230`
+- `MEMOS_ACCESS_TOKEN` — token from your useMemos settings
+
+---
+
+## ⚡ Activation (required before any tool call works)
+
+1. **Set credentials**  
    ```bash
-   export MEMOS_API_URL="http://localhost:5230"  # Your Memos instance URL
-   export MEMOS_ACCESS_TOKEN="your_token_here"
+   export MEMOS_API_URL="http://<memos-host>:5230"
+   export MEMOS_ACCESS_TOKEN="<token>"
    ```
-4. Create initial structure:
+   Or write them to `$HERMES_HOME/usememos.json` (permissions `0o600`).
+
+2. **Activate provider**  
    ```bash
-   mkdir -p /opt/data/memos && touch /opt/data/memos/README.md
+   hermes config set memory.provider usememos
    ```
+
+3. **Restart gateway** so the plugin loads  
+   ```bash
+   hermes -p <profile> gateway run --replace
+   ```
+
+4. **Confirm availability**  
+   `hermes doctor` or verify `is_available()` returns true; `memos_list`, `memos_search`, `memos_add` should appear in the toolset.
+
+---
 
 ## 📂 Repository Structure
+
 ```
-├── /memos/            # Markdown files (each = one memo)
-├── /scripts/          # Utility scripts (import, backup, etc.)
-├── /docs/             # Documentation and guides
-└── README.md          # This file
+├── skills/software-development/hermes-agent-skill-authoring/usememos/SKILL.md   # skill definition
+├── skills/.../usememos/scripts/memos-import-markdown.py                        # bulk markdown import
+└── README.md                                                                   # this file
 ```
 
-## 🚀 Usage
-- 📝 **Create a memo**: `echo "Task completed" > /opt/data/memos/task.md`
-- 🔍 **Search memos**: `grep "task" /opt/data/memos/*.md`
-- 📊 **View memos**: Open any `.md` file in your editor
+---
 
-## 🤝 Contributing
-- 🌱 **Fork** the repository
-- 🔄 **Create a feature branch**: `git checkout -b feat/your-feature`
-- ✨ **Commit changes**: `git commit -m "Add feature"`
-- 📤 **Push changes**: `git push origin main`
+## 📦 Bulk Import — one memo per file
+
+Import a directory of `.md` files into useMemos, each file becoming exactly one memo.
+
+```bash
+export MEMOS_API_URL="http://<memos-host>:5230"
+export MEMOS_ACCESS_TOKEN="<token>"
+export MEMOS_VISIBILITY="PRIVATE"   # optional, default PRIVATE
+export MEMOS_DEDUP="false"          # optional, skip duplicates
+
+python3 scripts/memos-import-markdown.py /path/to/markdown/files
+```
+
+Output per file: `Imported`, `Skipped (empty)`, or `Skipped (duplicate)`. Ends with totals.
+
+---
+
+## ⚠️ Pitfalls
+
+| Issue | Fix |
+|---|---|
+| HTTP 429 rate limit | Wait 1 minute, retry |
+| Invalid/expired token | Refresh token in useMemos settings, update `MEMOS_ACCESS_TOKEN` |
+| Instance not reachable | Check network and `MEMOS_API_URL` |
+
+---
+
+## ✅ Verification
+
+- `hermes memory list` returns memos without errors
+- `hermes chat -q "create memo: test"` → appears in `hermes chat -q "search memos for test"`
+- Memo visibility matches your default setting
+
+---
 
 ## 📜 License
-MIT License - see [LICENSE](LICENSE) for details
+
+MIT
