@@ -35,6 +35,13 @@ This skill enables Hermes to interact with the Memos self-hosted note service, a
 - Environment variables set: `MEMOS_API_URL`, `MEMOS_ACCESS_TOKEN`
 - Optionally create `usememos.json` in `$HERMES_HOME` for config
 
+## Activation (required before any tool call works)
+
+1. **Set credentials** — export `MEMOS_API_URL` and `MEMOS_ACCESS_TOKEN`, or write them to `$HERMES_HOME/usememos.json` (file permissions `0o600`).
+2. **Activate provider** — `hermes config set memory.provider usememos`
+3. **Restart gateway** — `hermes -p <profile> gateway run --replace` so the plugin loads into the active session.
+4. **Confirm availability** — `hermes doctor` or verify `is_available()` returns true; `memos_list`, `memos_search`, `memos_add` should appear in the toolset.
+
 ## How to Run
 
 ```bash
