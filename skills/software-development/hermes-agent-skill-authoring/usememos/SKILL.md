@@ -67,11 +67,48 @@ hermes chat -q "create memo: 'Task completed'"
 5. **Verify memo creation**  
    Run `hermes chat -q "search memos for 'Task completed'"` — should find the memo you just created.
 
+## Bulk import — one memo per file
+
+### When to use
+
+Import a directory of `.md` files into Memos, each file becoming exactly one memo (raw markdown preserved). Use this when your notes are already split by file and you don't want heading-based parsing.
+
+### Procedure
+
+1. **Set credentials**
+   ```bash
+   export MEMOS_API_URL="http://<memos-host>:5230"
+   export MEMOS_ACCESS_TOKEN="<token>"
+   export MEMOS_VISIBILITY="PRIVATE"
+   export MEMOS_DEDUP="false"
+   ```
+   `MEMOS_VISIBILITY` default is `PRIVATE`. `MEMOS_DEDUP=true` skips files whose content already exists in Memos.
+
+2. **Run the import script**
+   ```bash
+   python3 scripts/memos-import-markdown.py /path/to/markdown/files
+   ```
+   Each `.md` file is read as raw markdown and POSTed as one memo. Empty files are skipped.
+
+3. **Review output**
+   The script prints one line per file: `Imported: <file>`, `Skipped (empty): <file>`, or `Skipped (duplicate): <file>`. At the end it prints totals.
+
+### Why one memo per file
+
+- Simpler code — no markdown parsing logic
+- Works with any markdown structure, no heading assumptions
+- No data loss if a single file fails
+- Trade-off: search inside Memos is at file granularity, not section granularity. For long files (50+ lines), consider splitting by `# ` headings instead.
+
 ## Pitfalls
 
 - Memos API rate limiting — if you get HTTP 429 errors, wait 1 minute before retrying.
 - Invalid or expired API token — refresh the token in Memos settings and update `MEMOS_ACCESS_TOKEN`.
 - Memos instance not reachable — ensure network connectivity and correct API URL.
+
+## Support files
+
+`scripts/memos-import-markdown.py` — the import script referenced in the Bulk import section above.
 
 ## Verification
 
