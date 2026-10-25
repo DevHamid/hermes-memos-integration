@@ -10,9 +10,10 @@ This skill bridges Hermes Agent with [useMemos](https://usememos.com) (self-host
 
 | Capability | Command |
 |---|---|
-| 📋 List recent memos | `hermes chat -q "list recent memos"` |
-| 🔍 Search memos | `hermes chat -q "search memos for <keyword>"` |
-| ✍️ Create memo | `hermes chat -q "create memo: <content>"` |
+|| 📋 List recent memos | `hermes chat -q "list recent memos"` |
+|| 🔍 Search memos | `hermes chat -q "search memos for <keyword>"` |
+|| 📝 Summarize recent memos | `hermes chat -q "summarize recent memos"` |
+|| ✍️ Create memo | `hermes chat -q "create memo: <content>"` |
 
 ---
 

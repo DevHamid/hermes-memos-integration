@@ -54,6 +54,7 @@ hermes chat -q "create memo: 'Task completed'"
 
 - `hermes chat -q "list"` — list recent memos
 - `hermes chat -q "search <keyword>"` — search memos by keyword
+- `hermes chat -q "summarize"` — summarize recent memos into a short catch-up
 - `hermes chat -q "create memo: <content>"` — create a new memo
 
 ## Procedure
@@ -71,8 +72,11 @@ hermes chat -q "create memo: 'Task completed'"
 4. **Create a new memo**  
    Run `hermes chat -q "create memo: 'Task completed successfully'"` — should store the memo and return a success message with the memo ID.
 
-5. **Verify memo creation**  
+5. **Verify memo creation** 
    Run `hermes chat -q "search memos for 'Task completed'"` — should find the memo you just created.
+
+6. **Summarize recent memos**
+   Run `hermes chat -q "summarize recent memos"` — returns a short, human-readable catch-up of the most recent memos without listing every field.
 
 ## Bulk import — one memo per file
 
