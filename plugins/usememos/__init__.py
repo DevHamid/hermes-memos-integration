@@ -39,6 +39,7 @@ def _load_config() -> dict:
         "api_url": os.environ.get("MEMOS_API_URL", ""),
         "access_token": os.environ.get("MEMOS_ACCESS_TOKEN", ""),
         "default_visibility": "PRIVATE",
+        "default_space": os.environ.get("MEMOS_SPACE", ""),
     }
 
     config_path = get_hermes_home() / "usememos.json"
@@ -140,6 +141,10 @@ ADD_SCHEMA = {
                 "description": "Memo visibility: PRIVATE (default), PROTECTED, or PUBLIC.",
                 "enum": ["PRIVATE", "PROTECTED", "PUBLIC"],
             },
+            "space": {
+                "type": "string",
+                "description": "Space ID to store the memo in (optional; defaults to config MEMOS_SPACE).",
+            },
         },
         "required": ["content"],
     },
@@ -177,6 +182,7 @@ class MemosMemoryProvider(MemoryProvider):
         self._api_url = ""
         self._access_token = ""
         self._default_visibility = "PRIVATE"
+        self._default_space = ""
         self._prefetch_result = ""
         self._prefetch_lock = threading.Lock()
         self._prefetch_thread = None
@@ -226,6 +232,12 @@ class MemosMemoryProvider(MemoryProvider):
                 "default": "PRIVATE",
                 "choices": ["PRIVATE", "PROTECTED", "PUBLIC"],
             },
+            {
+                "key": "default_space",
+                "description": "Default space ID for new memos (optional)",
+                "default": "",
+                "env_var": "MEMOS_SPACE",
+            },
         ]
 
     def initialize(self, session_id: str, **kwargs) -> None:
@@ -233,6 +245,7 @@ class MemosMemoryProvider(MemoryProvider):
         self._api_url = self._config.get("api_url", "")
         self._access_token = self._config.get("access_token", "")
         self._default_visibility = self._config.get("default_visibility", "PRIVATE")
+        self._default_space = self._config.get("default_space", "")
 
     def _list_memos(self, limit: int = 20) -> list:
         """Fetch recent memos from the Memos API."""
@@ -334,10 +347,14 @@ class MemosMemoryProvider(MemoryProvider):
             if not content:
                 return tool_error("Missing required parameter: content")
             visibility = args.get("visibility", self._default_visibility)
+            space = args.get("space", self._default_space)
             try:
+                body = {"content": content, "visibility": visibility}
+                if space:
+                    body["space"] = space
                 result = _api_request(
                     self._api_url, self._access_token, "POST", "/memos",
-                    body={"content": content, "visibility": visibility},
+                    body=body,
                 )
                 memo_name = result.get("name", result.get("uid", ""))
                 return json.dumps({"result": "Memo stored.", "id": memo_name})
